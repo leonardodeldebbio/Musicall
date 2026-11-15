@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Similar music</title>
+<style>
+  :root {
+    --paper: #f4f6fa;
+    --ink: #1c2333;
+    --muted: #5d667c;
+    --line: #d5dae6;
+    --accent: #c2185b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  main { max-width: 46rem; margin: 0 auto; padding: 3rem 1.25rem 4rem; }
+  h1 { font: 600 2.4rem/1.1 Georgia, "Iowan Old Style", serif; margin: 0 0 0.4rem; }
+  p.lead { margin: 0 0 2rem; color: var(--muted); }
+  .controls { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; }
+  .kind { display: flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+  .kind label { padding: 0.5rem 0.9rem; cursor: pointer; }
+  .kind input { position: absolute; opacity: 0; }
+  .kind input:checked + span { color: var(--accent); font-weight: 600; }
+  .kind label:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: -2px; }
+  input[type="search"] {
+    flex: 1 1 14rem; padding: 0.6rem 0.8rem; font: inherit; color: inherit;
+    background: #fff; border: 1px solid var(--line); border-radius: 6px;
+  }
+  input[type="search"]:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  ul { list-style: none; margin: 1.25rem 0 0; padding: 0; }
+  li { border-bottom: 1px solid var(--line); }
+  li button {
+    display: block; width: 100%; text-align: left; padding: 0.7rem 0.2rem;
+    font: inherit; color: inherit; background: none; border: 0; cursor: pointer;
+  }
+  li button:hover, li button:focus-visible { color: var(--accent); outline: none; }
+  .sub { color: var(--muted); font-size: 0.9rem; }
+  .score { float: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+  h2 { font: 600 1.3rem/1.3 Georgia, serif; margin: 2.5rem 0 0; }
+  #status { margin-top: 1rem; color: var(--muted); min-height: 1.5rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Similar music</h1>
+  <p class="lead">Pick a song or an artist and get the closest matches by audio features and genre.</p>
+  <div class="controls">
+    <div class="kind" role="radiogroup" aria-label="Search type">
+      <label><input type="radio" name="kind" value="tracks" checked><span>Songs</span></label>
+      <label><input type="radio" name="kind" value="artists"><span>Artists</span></label>
+    </div>
+    <input id="query" type="search" placeholder="Search by name" aria-label="Search by name" autocomplete="off">
+  </div>
+  <div id="status" role="status"></div>
+  <ul id="matches"></ul>
+  <h2 id="title" hidden></h2>
+  <ul id="results"></ul>
+</main>
+<script src="recommender.js"></script>
+<script>
+  const DATA = "data";
+  const cache = {};
+  const els = {
+    query: document.getElementById("query"),
+    status: document.getElementById("status"),
+    matches: document.getElementById("matches"),
+    title: document.getElementById("title"),
+    results: document.getElementById("results"),
+  };
+  const params = new URLSearchParams(location.search);
+  let timer = null;
+
+  function currentKind() {
+    return document.querySelector('input[name="kind"]:checked').value;
+  }
+
+  async function getIndex(kind) {
+    if (!cache[kind]) {
+      els.status.textContent = "Loading data...";
+      cache[kind] = Recommender.load(kind, DATA);
+    }
+    try {
+      const index = await cache[kind];
+      els.status.textContent = "";
+      return index;
+    } catch (error) {
+      delete cache[kind];
+      els.status.textContent = "Could not load the data. Run the workflow first, then reload.";
+      throw error;
+    }
+  }
+
+  function describe(kind, item) {
+    return kind === "tracks"
+      ? item.artist + (item.genre ? " - " + item.genre : "")
+      : item.tracks + (item.tracks === 1 ? " track" : " tracks") + (item.genre ? " - " + item.genre : "");
+  }
+
+  function row(kind, item, onClick) {
+    const li = document.createElement("li");
+    const button = document.createElement("button");
+    button.type = "button";
+    if (item.score !== undefined) {
+      const score = document.createElement("span");
+      score.className = "score";
+      score.textContent = Math.round(item.score * 100) + "%";
+      button.appendChild(score);
+    }
+    const name = document.createElement("span");
+    name.textContent = item.name;
+    const sub = document.createElement("div");
+    sub.className = "sub";
+    sub.textContent = describe(kind, item);
+    button.append(name, sub);
+    button.addEventListener("click", onClick);
+    li.appendChild(button);
+    return li;
+  }
+
+  function count() {
+    const n = parseInt(params.get("n"), 10);
+    return n > 0 ? n : 10;
+  }
+
+  async function showSimilar(kind, index, item) {
+    els.matches.replaceChildren();
+    els.title.hidden = false;
+    els.title.textContent = "Similar to " + item.name;
+    const list = index.similar(item.index, count());
+    els.results.replaceChildren(...list.map((entry) => row(kind, entry, () => showSimilar(kind, index, entry))));
+  }
+
+  async function runSearch() {
+    const kind = currentKind();
+    const text = els.query.value;
+    els.results.replaceChildren();
+    els.title.hidden = true;
+    if (!text.trim()) {
+      els.matches.replaceChildren();
+      return;
+    }
+    const index = await getIndex(kind);
+    const hits = index.search(text, 8);
+    els.status.textContent = hits.length ? "" : "No results. Try fewer words.";
+    els.matches.replaceChildren(...hits.map((hit) => row(kind, hit, () => showSimilar(kind, index, hit))));
+  }
+
+  async function runApi(kind, text) {
+    const index = await getIndex(kind);
+    const result = index.recommend(text, count());
+    const pre = document.createElement("pre");
+    pre.textContent = JSON.stringify(result || { query: text, error: "not found" }, null, 2);
+    document.body.replaceChildren(pre);
+  }
+
+  els.query.addEventListener("input", () => {
+    clearTimeout(timer);
+    timer = setTimeout(runSearch, 200);
+  });
+  document.querySelectorAll('input[name="kind"]').forEach((radio) => radio.addEventListener("change", runSearch));
+
+  const initialKind = params.get("type") === "artist" || params.get("type") === "artists" ? "artists" : "tracks";
+  document.querySelector('input[name="kind"][value="' + initialKind + '"]').checked = true;
+  if (params.get("q")) {
+    els.query.value = params.get("q");
+    if (params.get("format") === "json") runApi(initialKind, params.get("q"));
+    else runSearch();
+  }
+</script>
+</body>
+</html>
