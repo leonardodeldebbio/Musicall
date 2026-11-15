@@ -177,17 +177,3 @@ Musicall is released under the **CC0 1.0 Universal** public domain dedication.
 You are free to copy, modify, distribute and use the project, including for commercial purposes, without asking for permission or providing attribution.
 
 See the [CC0 1.0 Universal license](https://creativecommons.org/publicdomain/zero/1.0/) for further information.
-
----
-
-<p align="center">
-  <b>Musicall</b>
-  <br>
-  <i>Making music discovery accessible to everyone.</i>
-  <br><br>
-  <a href="https://github.com/leonardodeldebbio/Musicall">GitHub Repository</a>
-  ·
-  <a href="https://musicall.vercel.app">API</a>
-  ·
-  <a href="https://leonardodeldebbio.github.io/Musicall/">Demo</a>
-</p>
