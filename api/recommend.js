@@ -1,6 +1,6 @@
 const Recommender = require("../docs/recommender.js");
 
-const DATA_URL = (process.env.DATA_URL || "https://YOUR_USER.github.io/YOUR_REPO/data").replace(/\/$/, "");
+const DATA_URL = (process.env.DATA_URL || "https://leonardodeldebbio.github.io/Musicall/data").replace(/\/$/, "");
 const TTL_MS = 60 * 60 * 1000;
 const cache = {};
 
