@@ -136,7 +136,7 @@ def load_tracks():
     for col in ("track_id", "track_name", "artists"):
         if col not in df.columns:
             sys.exit(f"Missing column: {col}")
-    for col in ("album_name", "track_genre", "cover_url", "preview_url"):
+    for col in ("album_name", "track_genre"):
         if col not in df.columns:
             df[col] = ""
         df[col] = df[col].fillna("").astype(str)
@@ -358,14 +358,11 @@ def main():
     idx, sim = cap_per_artist(idx, sim, primary, K, ARTIST_CAP)
     report(idx, genre_codes, family_codes, year_raw, pop, primary, album)
 
-    cover = df["cover_url"].to_numpy()
     write_kind("tracks", {
         "id": df["track_id"].tolist(),
         "name": df["track_name"].tolist(),
         "artist": df["artists"].astype(str).str.replace(";", ", ").tolist(),
         "album": df["album_name"].tolist(),
-        "cover": df["cover_url"].tolist(),
-        "preview": df["preview_url"].tolist(),
         "genre": df["track_genre"].tolist(),
         "year": year_raw.astype(int).tolist() if has_year else [0] * n,
         "family": family_codes.tolist(),
@@ -394,8 +391,6 @@ def main():
     top_genre = genre_mass.argmax(axis=1)
     artist_year = np.asarray(membership @ year_raw) / wsum
     artist_pop = np.bincount(codes, weights=pop[rows]) / a_count
-    first_row = np.full(len(uniques), n - 1, dtype=np.int64)
-    np.minimum.at(first_row, codes, rows)
 
     profile = profile[selected]
     top_genre = top_genre[selected]
@@ -412,7 +407,6 @@ def main():
     )
     write_kind("artists", {
         "name": [u for u, s in zip(uniques, selected) if s],
-        "cover": cover[first_row[selected]].tolist(),
         "genre": [genre_names[g] for g in top_genre],
         "family": a_family.tolist(),
         "tracks": a_count[selected].astype(int).tolist(),
