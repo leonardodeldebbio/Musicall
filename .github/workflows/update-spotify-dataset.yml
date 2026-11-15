@@ -9,15 +9,17 @@ permissions:
   contents: write
 
 env:
-  KAGGLE_DATASET: "maharshipandya/-spotify-tracks-dataset"
-  MIN_POPULARITY: "20"
-  MAX_TRACKS: "100000"
+  KAGGLE_DATASET: "amitanshjoshi/spotify-1million-tracks"
+  MIN_POPULARITY: "30"
+  MAX_TRACKS: "200000"
   NEIGHBORS: "20"
+  MAX_DOCS_MB: "400"
+  MAX_FILE_MB: "90"
 
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 120
 
     steps:
       - name: Checkout repository
@@ -50,7 +52,7 @@ jobs:
           rm -rf raw
           mkdir -p raw data
           kaggle datasets download -d "$KAGGLE_DATASET" -p raw --unzip
-          find raw -type f -name "*.csv" -print
+          find raw -type f -name "*.csv" -exec ls -lh {} \;
 
       - name: Filter and save CSV
         run: |
@@ -62,30 +64,74 @@ jobs:
 
           import pandas as pd
 
+          OUT_COLUMNS = [
+              "track_id", "artists", "album_name", "track_name", "popularity",
+              "duration_ms", "explicit", "danceability", "energy", "key",
+              "loudness", "mode", "speechiness", "acousticness",
+              "instrumentalness", "liveness", "valence", "tempo",
+              "time_signature", "track_genre",
+          ]
+          FLOAT_COLUMNS = [
+              "danceability", "energy", "loudness", "speechiness",
+              "acousticness", "instrumentalness", "liveness", "valence", "tempo",
+          ]
+          RENAMES = {
+              "artist_name": "artists",
+              "artist": "artists",
+              "genre": "track_genre",
+              "id": "track_id",
+              "name": "track_name",
+              "album": "album_name",
+          }
+
           files = glob.glob("raw/**/*.csv", recursive=True)
           if not files:
               sys.exit("No CSV file found in raw/")
           source = max(files, key=os.path.getsize)
           print(f"Reading {source}")
 
-          df = pd.read_csv(source)
+          df = pd.read_csv(source, low_memory=False)
           df = df.drop(columns=[c for c in df.columns if c.startswith("Unnamed")])
+          df.columns = [c.strip().lower().replace(" ", "_") for c in df.columns]
+          df = df.rename(columns=RENAMES)
 
-          required = ["track_id", "popularity"]
+          required = ["track_id", "track_name", "artists", "popularity"] + FLOAT_COLUMNS
           missing = [c for c in required if c not in df.columns]
           if missing:
               sys.exit(f"Missing columns: {missing}. Found: {list(df.columns)}")
 
-          df = df.drop_duplicates(subset="track_id")
-          df = df[df["popularity"] >= int(os.environ["MIN_POPULARITY"])]
+          for column in OUT_COLUMNS:
+              if column not in df.columns:
+                  df[column] = False if column == "explicit" else ""
+          df = df[OUT_COLUMNS]
+          print(f"Rows before cleaning: {len(df)}")
+
+          df["popularity"] = pd.to_numeric(df["popularity"], errors="coerce")
+          df[FLOAT_COLUMNS] = df[FLOAT_COLUMNS].apply(pd.to_numeric, errors="coerce")
+          df = df.dropna(subset=["track_id", "track_name", "artists", "popularity"] + FLOAT_COLUMNS)
+
           df = df.sort_values(["popularity", "track_id"], ascending=[False, True], kind="stable")
+          df = df.drop_duplicates(subset="track_id", keep="first")
+
+          df["_key"] = (
+              df["track_name"].astype(str).str.lower().str.strip()
+              + "||"
+              + df["artists"].astype(str).str.lower().str.strip()
+          )
+          df = df.drop_duplicates(subset="_key", keep="first").drop(columns="_key")
+
+          df = df[df["popularity"] >= int(os.environ["MIN_POPULARITY"])]
           df = df.head(int(os.environ["MAX_TRACKS"]))
 
           if df.empty:
               sys.exit("No tracks left after filtering")
 
+          df["popularity"] = df["popularity"].astype(int)
+          df[FLOAT_COLUMNS] = df[FLOAT_COLUMNS].round(4)
+
           df.to_csv("data/tracks.csv", index=False)
           print(f"Tracks saved: {len(df)}")
+          print(f"Popularity range: {df['popularity'].min()} - {df['popularity'].max()}")
           PY
           ls -lh data
 
@@ -96,11 +142,27 @@ jobs:
           python build_recommendations.py
           ls -lh docs/data
 
+      - name: Check size limits
+        run: |
+          set -euo pipefail
+          total=$(du -sm docs/data | cut -f1)
+          echo "docs/data total: ${total} MB"
+          oversized=$(find docs/data -type f -size +"${MAX_FILE_MB}"M | head -n 1)
+          if [ -n "$oversized" ]; then
+            echo "File larger than ${MAX_FILE_MB} MB: $oversized"
+            exit 1
+          fi
+          if [ "$total" -gt "$MAX_DOCS_MB" ]; then
+            echo "docs/data exceeds ${MAX_DOCS_MB} MB, lower MAX_TRACKS or NEIGHBORS"
+            exit 1
+          fi
+
       - name: Commit changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data docs/data
+          git rm -r -q --cached --ignore-unmatch data
+          git add docs/data
           if git diff --cached --quiet; then
             echo "No changes."
           else
