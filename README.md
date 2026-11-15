@@ -10,7 +10,7 @@
 <p align="center">
   <strong>An open-source music recommendation engine.</strong>
   <br>
-  Discover similar songs and artists through audio analysis and content-based filtering.
+  Discover similar songs and artists through content-based filtering.
 </p>
 
 <p align="center">
@@ -33,8 +33,7 @@ The recommendation engine is developed in Python, while its results are exposed 
 
 - **Song recommendations:** Discover tracks with similar musical characteristics.
 - **Artist recommendations:** Identify artists with comparable musical styles.
-- **Audio snippet analysis:** Extract additional musical information from short audio excerpts to improve recommendation accuracy.
-- **Content-Based Filtering:** Generate recommendations using musical characteristics rather than user preferences or listening histories.
+- **Content-Based Filtering:** Generate recommendations based on musical characteristics rather than user listening histories.
 - **REST API:** Access recommendation results through HTTP requests.
 - **Expanded dataset:** An evolving collection of tracks and musical information.
 - **Automated updates:** GitHub Actions workflows maintain and update the recommendation database.
@@ -52,8 +51,6 @@ The system considers several audio features, including:
 - Musical genres and other track characteristics.
 
 These features are processed and compared using **Cosine Similarity**, allowing the system to identify tracks with similar musical profiles.
-
-Audio snippet analysis provides an additional source of information by extracting characteristics directly from short audio excerpts, helping improve the accuracy of recommendations.
 
 Recommendations are precomputed and stored in optimized files, allowing the API to retrieve results efficiently.
 
@@ -100,11 +97,11 @@ The project Wiki contains additional technical information about the system, its
 
 ## Changelog
 
-### v1.1.0 — Recommendation Improvements
+### v1.1.0 — Dataset Expansion
 
-- Introduced audio snippet analysis to extract musical characteristics directly from short audio excerpts.
-- Integrated snippet-based analysis into the recommendation process to improve prediction accuracy.
-- Expanded the original dataset with additional tracks and musical information.
+- Expanded the original music dataset with additional tracks and musical information.
+- Updated the recommendation database to incorporate the expanded collection.
+- Improved the overall recommendation system.
 
 ### v1.0.0 — Initial Release
 
