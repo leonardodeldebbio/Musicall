@@ -68,8 +68,7 @@
       const minYear = Number.isFinite(o.minYear) ? o.minYear : null;
       const maxYear = Number.isFinite(o.maxYear) ? o.maxYear : null;
       const minPop = Number.isFinite(o.minPopularity) ? o.minPopularity : null;
-      const previewOnly = o.previewOnly === true;
-      if (!genre && !family && minYear === null && maxYear === null && minPop === null && !previewOnly) {
+      if (!genre && !family && minYear === null && maxYear === null && minPop === null) {
         return null;
       }
       const c = this.catalog;
@@ -86,7 +85,6 @@
           if (maxYear !== null && year > maxYear) return false;
         }
         if (minPop !== null && (!c.pop || c.pop[i] < minPop)) return false;
-        if (previewOnly && (!c.preview || !c.preview[i])) return false;
         return true;
       };
     }
