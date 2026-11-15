@@ -95,22 +95,6 @@ The project Wiki contains additional technical information about the system, its
 - [Quickstart](https://github.com/leonardodeldebbio/Musicall/wiki/Quickstart)
 - [Recommendation System](https://github.com/leonardodeldebbio/Musicall/wiki/Recommendation-System)
 
-## Changelog
-
-### v1.1.0 — Dataset Expansion
-
-- Expanded the original music dataset with additional tracks and musical information.
-- Updated the recommendation database to incorporate the expanded collection.
-- Improved the overall recommendation system.
-
-### v1.0.0 — Initial Release
-
-- First public release of Musicall.
-- Introduced the Content-Based Filtering recommendation engine.
-- Implemented song and artist recommendations.
-- Published the REST API and live demonstration.
-- Established the original music dataset and automated processing pipeline.
-
 ## License
 
 Musicall is released under the **[CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/)** license.
