@@ -3,172 +3,354 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Similar music</title>
+<meta name="color-scheme" content="light dark">
+<title>Musicall demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --paper: #f4f6fa;
-    --ink: #1c2333;
-    --muted: #5d667c;
-    --line: #d5dae6;
-    --accent: #c2185b;
+    --primary: #4355b9; --on-primary: #ffffff;
+    --primary-container: #dee0ff; --on-primary-container: #00105c;
+    --secondary-container: #dce2f9; --on-secondary-container: #151b2c;
+    --surface: #fbf8ff; --surface-high: #e9e7ef; --surface-low: #f5f2fa;
+    --on-surface: #1b1b21; --on-surface-variant: #46464f;
+    --outline: #777680; --outline-variant: #c7c5d0;
+    --error-container: #ffdad6; --on-error-container: #410002;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --primary: #bac3ff; --on-primary: #0a218f;
+      --primary-container: #2a3ca1; --on-primary-container: #dee0ff;
+      --secondary-container: #404659; --on-secondary-container: #dce2f9;
+      --surface: #121318; --surface-high: #292a2f; --surface-low: #1b1b21;
+      --on-surface: #e4e1e9; --on-surface-variant: #c7c5d0;
+      --outline: #918f9a; --outline-variant: #46464f;
+      --error-container: #93000a; --on-error-container: #ffdad6;
+    }
   }
   * { box-sizing: border-box; }
   body {
-    margin: 0;
-    background: var(--paper);
-    color: var(--ink);
-    font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+    margin: 0; background: var(--surface); color: var(--on-surface);
+    font: 400 16px/1.5 Roboto, system-ui, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
   }
-  main { max-width: 46rem; margin: 0 auto; padding: 3rem 1.25rem 4rem; }
-  h1 { font: 600 2.4rem/1.1 Georgia, "Iowan Old Style", serif; margin: 0 0 0.4rem; }
-  p.lead { margin: 0 0 2rem; color: var(--muted); }
-  .controls { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; }
-  .kind { display: flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
-  .kind label { padding: 0.5rem 0.9rem; cursor: pointer; }
-  .kind input { position: absolute; opacity: 0; }
-  .kind input:checked + span { color: var(--accent); font-weight: 600; }
-  .kind label:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: -2px; }
-  input[type="search"] {
-    flex: 1 1 14rem; padding: 0.6rem 0.8rem; font: inherit; color: inherit;
-    background: #fff; border: 1px solid var(--line); border-radius: 6px;
+  main { max-width: 46rem; margin: 0 auto; padding: 2.5rem 1rem 4rem; }
+  h1 { font-size: 2rem; line-height: 2.5rem; font-weight: 400; margin: 0; }
+  .lead { margin: 0.25rem 0 1.75rem; color: var(--on-surface-variant); }
+  svg { width: 24px; height: 24px; fill: currentColor; flex: none; }
+
+  .search {
+    position: relative; display: flex; align-items: center; gap: 0.5rem;
+    min-height: 56px; padding: 0 0.5rem 0 1rem; border-radius: 28px;
+    background: var(--surface-high); color: var(--on-surface-variant);
   }
-  input[type="search"]:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-  ul { list-style: none; margin: 1.25rem 0 0; padding: 0; }
-  li { border-bottom: 1px solid var(--line); }
-  li button {
-    display: block; width: 100%; text-align: left; padding: 0.7rem 0.2rem;
-    font: inherit; color: inherit; background: none; border: 0; cursor: pointer;
+  .search:focus-within { outline: 2px solid var(--primary); outline-offset: 0; }
+  .search input {
+    flex: 1; min-width: 0; height: 56px; padding: 0; border: 0; outline: 0;
+    background: none; color: var(--on-surface); font: inherit; font-size: 1rem;
+    text-overflow: ellipsis;
   }
-  li button:hover, li button:focus-visible { color: var(--accent); outline: none; }
-  .sub { color: var(--muted); font-size: 0.9rem; }
-  .score { float: right; color: var(--muted); font-variant-numeric: tabular-nums; }
-  h2 { font: 600 1.3rem/1.3 Georgia, serif; margin: 2.5rem 0 0; }
-  #status { margin-top: 1rem; color: var(--muted); min-height: 1.5rem; }
+  .search input::placeholder { color: var(--on-surface-variant); }
+  .search input::-webkit-search-cancel-button { display: none; }
+  .icon-button {
+    position: relative; width: 40px; height: 40px; border: 0; border-radius: 50%;
+    display: grid; place-items: center; background: none; color: inherit; cursor: pointer;
+  }
+  .icon-button[hidden] { display: none; }
+  .state::before {
+    content: ""; position: absolute; inset: 0; border-radius: inherit;
+    background: currentColor; opacity: 0; transition: opacity 0.15s;
+  }
+  .state:hover::before { opacity: 0.08; }
+  .state:focus-visible::before, .state:active::before { opacity: 0.12; }
+  .state:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+  .progress { height: 4px; margin: 0 1.5rem; overflow: hidden; border-radius: 2px; background: var(--primary-container); visibility: hidden; }
+  .progress.on { visibility: visible; }
+  .progress::after {
+    content: ""; display: block; width: 40%; height: 100%; background: var(--primary);
+    animation: slide 1.1s ease-in-out infinite;
+  }
+  @keyframes slide { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
+
+  .segmented { display: flex; margin: 1rem 0 0; border: 1px solid var(--outline); border-radius: 20px; overflow: hidden; }
+  .segmented label {
+    position: relative; flex: 1; display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+    height: 40px; cursor: pointer; font-weight: 500; font-size: 0.875rem; color: var(--on-surface);
+  }
+  .segmented label + label { border-left: 1px solid var(--outline); }
+  .segmented input { position: absolute; opacity: 0; }
+  .segmented svg { width: 18px; height: 18px; display: none; }
+  .segmented label:has(input:checked) { background: var(--secondary-container); color: var(--on-secondary-container); }
+  .segmented label:has(input:checked) svg { display: block; }
+  .segmented label:has(input:focus-visible) { outline: 2px solid var(--primary); outline-offset: -2px; }
+
+  #status { margin: 1rem 0 0; color: var(--on-surface-variant); }
+  #status.error { padding: 0.75rem 1rem; border-radius: 12px; background: var(--error-container); color: var(--on-error-container); }
+  #status:empty { display: none; }
+  .hint { margin: 3rem 0 0; text-align: center; color: var(--on-surface-variant); }
+
+  .card { margin-top: 1.25rem; border: 1px solid var(--outline-variant); border-radius: 16px; background: var(--surface-low); overflow: hidden; }
+  .card[hidden], .hero[hidden], .hint[hidden] { display: none; }
+  .label { margin: 0; padding: 1rem 1rem 0.25rem; font-size: 0.875rem; font-weight: 500; color: var(--primary); letter-spacing: 0.1px; }
+  ul { list-style: none; margin: 0; padding: 0; }
+  li + li { border-top: 1px solid var(--outline-variant); }
+  .item {
+    position: relative; display: flex; align-items: center; gap: 1rem; width: 100%;
+    padding: 0.75rem 1rem; border: 0; background: none; color: inherit;
+    font: inherit; text-align: left; cursor: pointer;
+  }
+  .lead-circle {
+    flex: none; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center;
+    background: var(--secondary-container); color: var(--on-secondary-container); font-weight: 500; font-size: 0.875rem;
+  }
+  .text { flex: 1; min-width: 0; }
+  .headline { display: block; overflow-wrap: anywhere; }
+  .support { display: block; font-size: 0.875rem; color: var(--on-surface-variant); overflow-wrap: anywhere; }
+  .meter { height: 4px; margin-top: 0.5rem; border-radius: 2px; background: var(--outline-variant); overflow: hidden; }
+  .meter span { display: block; height: 100%; background: var(--primary); border-radius: 2px; }
+  .trail { flex: none; font-size: 0.875rem; font-weight: 500; color: var(--on-surface-variant); font-variant-numeric: tabular-nums; }
+
+  .hero { margin-top: 1.25rem; padding: 1.25rem 1.25rem 1rem; border-radius: 28px; background: var(--primary-container); color: var(--on-primary-container); }
+  .hero small { display: block; font-size: 0.75rem; font-weight: 500; letter-spacing: 0.5px; text-transform: uppercase; opacity: 0.8; }
+  .hero h2 { margin: 0.25rem 0 0; font-size: 1.5rem; line-height: 2rem; font-weight: 400; overflow-wrap: anywhere; }
+  .hero p { margin: 0; overflow-wrap: anywhere; }
+  .chips { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.875rem; }
+  .chip, .link {
+    display: inline-flex; align-items: center; height: 32px; padding: 0 0.75rem; border-radius: 8px;
+    border: 1px solid currentColor; font-size: 0.875rem; font-weight: 500; color: inherit; text-decoration: none; opacity: 0.9;
+  }
+  .link { position: relative; background: var(--primary); color: var(--on-primary); border-color: var(--primary); opacity: 1; }
+
+  .more { padding: 0.5rem 1rem 1rem; text-align: center; }
+  .more[hidden] { display: none; }
+  .outlined {
+    position: relative; height: 40px; padding: 0 1.5rem; border: 1px solid var(--outline); border-radius: 20px;
+    background: none; color: var(--primary); font: 500 0.875rem Roboto, system-ui, sans-serif; cursor: pointer;
+  }
+  pre { margin: 1rem; white-space: pre-wrap; overflow-wrap: anywhere; font: 0.875rem/1.5 ui-monospace, Consolas, monospace; }
+  @media (prefers-reduced-motion: reduce) { .progress::after { animation: none; } .state::before { transition: none; } }
 </style>
 </head>
 <body>
 <main>
   <h1>Similar music</h1>
-  <p class="lead">Pick a song or an artist and get the closest matches by audio features and genre.</p>
-  <div class="controls">
-    <div class="kind" role="radiogroup" aria-label="Search type">
-      <label><input type="radio" name="kind" value="tracks" checked><span>Songs</span></label>
-      <label><input type="radio" name="kind" value="artists"><span>Artists</span></label>
-    </div>
-    <input id="query" type="search" placeholder="Search by name" aria-label="Search by name" autocomplete="off">
+  <p class="lead">Find songs and artists that sound alike, based on audio features and genre.</p>
+
+  <div class="search">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+    <input id="query" type="search" placeholder="Song or artist name" aria-label="Song or artist name" autocomplete="off" enterkeyhint="search" spellcheck="false">
+    <button id="clear" class="icon-button state" type="button" aria-label="Clear" hidden>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+    </button>
   </div>
-  <div id="status" role="status"></div>
-  <ul id="matches"></ul>
-  <h2 id="title" hidden></h2>
-  <ul id="results"></ul>
+  <div id="progress" class="progress" aria-hidden="true"></div>
+
+  <div class="segmented" role="radiogroup" aria-label="Search type">
+    <label><input type="radio" name="kind" value="tracks" checked><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>Songs</label>
+    <label><input type="radio" name="kind" value="artists"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>Artists</label>
+  </div>
+
+  <div id="status" role="status" aria-live="polite"></div>
+  <p id="hint" class="hint">Search for a song or an artist to see similar ones.</p>
+
+  <section id="matches" class="card" hidden>
+    <h2 class="label">Matches</h2>
+    <ul id="match-list"></ul>
+  </section>
+
+  <section id="hero" class="hero" hidden></section>
+
+  <section id="similar" class="card" hidden>
+    <h2 class="label">Similar</h2>
+    <ul id="results"></ul>
+    <div id="more" class="more" hidden><button id="more-button" class="outlined state" type="button">Show more</button></div>
+  </section>
 </main>
 <script src="recommender.js"></script>
 <script>
   const DATA = "data";
+  const STEP = 10;
   const cache = {};
-  const els = {
-    query: document.getElementById("query"),
-    status: document.getElementById("status"),
-    matches: document.getElementById("matches"),
-    title: document.getElementById("title"),
-    results: document.getElementById("results"),
-  };
+  const $ = (id) => document.getElementById(id);
   const params = new URLSearchParams(location.search);
+  const requested = parseInt(params.get("n"), 10);
+  const state = { kind: "tracks", index: null, item: null, shown: requested > 0 ? requested : STEP };
   let timer = null;
+
+  function kindFromParam(value) {
+    return value === "artist" || value === "artists" ? "artists" : "tracks";
+  }
 
   function currentKind() {
     return document.querySelector('input[name="kind"]:checked').value;
   }
 
+  function setStatus(text, isError) {
+    const el = $("status");
+    el.textContent = text || "";
+    el.className = isError ? "error" : "";
+  }
+
   async function getIndex(kind) {
-    if (!cache[kind]) {
-      els.status.textContent = "Loading data...";
-      cache[kind] = Recommender.load(kind, DATA);
-    }
+    if (!cache[kind]) cache[kind] = Recommender.load(kind, DATA);
+    $("progress").classList.add("on");
     try {
-      const index = await cache[kind];
-      els.status.textContent = "";
-      return index;
+      return await cache[kind];
     } catch (error) {
       delete cache[kind];
-      els.status.textContent = "Could not load the data. Run the workflow first, then reload.";
+      setStatus("Could not load the data. Make sure the workflow has run, then reload the page.", true);
       throw error;
+    } finally {
+      $("progress").classList.remove("on");
     }
   }
 
-  function describe(kind, item) {
-    return kind === "tracks"
-      ? item.artist + (item.genre ? " - " + item.genre : "")
-      : item.tracks + (item.tracks === 1 ? " track" : " tracks") + (item.genre ? " - " + item.genre : "");
+  function details(kind, item) {
+    if (kind === "tracks") return [item.artist, item.genre].filter(Boolean).join(" · ");
+    return [item.tracks + (item.tracks === 1 ? " track" : " tracks"), item.genre].filter(Boolean).join(" · ");
   }
 
-  function row(kind, item, onClick) {
-    const li = document.createElement("li");
-    const button = document.createElement("button");
+  function element(tag, className, text) {
+    const el = document.createElement(tag);
+    if (className) el.className = className;
+    if (text !== undefined) el.textContent = text;
+    return el;
+  }
+
+  function listRow(kind, item, label, onClick) {
+    const li = element("li");
+    const button = element("button", "item state");
     button.type = "button";
+    button.appendChild(element("span", "lead-circle", label));
+    const text = element("span", "text");
+    text.appendChild(element("span", "headline", item.name));
+    text.appendChild(element("span", "support", details(kind, item)));
     if (item.score !== undefined) {
-      const score = document.createElement("span");
-      score.className = "score";
-      score.textContent = Math.round(item.score * 100) + "%";
-      button.appendChild(score);
+      const meter = element("div", "meter");
+      const bar = element("span");
+      bar.style.width = Math.round(item.score * 100) + "%";
+      meter.appendChild(bar);
+      text.appendChild(meter);
     }
-    const name = document.createElement("span");
-    name.textContent = item.name;
-    const sub = document.createElement("div");
-    sub.className = "sub";
-    sub.textContent = describe(kind, item);
-    button.append(name, sub);
+    button.appendChild(text);
+    if (item.score !== undefined) button.appendChild(element("span", "trail", Math.round(item.score * 100) + "%"));
     button.addEventListener("click", onClick);
     li.appendChild(button);
     return li;
   }
 
-  function count() {
-    const n = parseInt(params.get("n"), 10);
-    return n > 0 ? n : 10;
+  function renderHero(kind, item) {
+    const hero = $("hero");
+    hero.replaceChildren(element("small", "", kind === "tracks" ? "Selected song" : "Selected artist"));
+    hero.appendChild(element("h2", "", item.name));
+    if (kind === "tracks" && item.artist) hero.appendChild(element("p", "", item.artist));
+    const chips = element("div", "chips");
+    if (item.genre) chips.appendChild(element("span", "chip", item.genre));
+    if (kind === "artists") chips.appendChild(element("span", "chip", item.tracks + (item.tracks === 1 ? " track" : " tracks")));
+    chips.appendChild(element("span", "chip", "Popularity " + item.pop));
+    if (kind === "tracks") {
+      const link = element("a", "link state", "Open in Spotify");
+      link.href = "https://open.spotify.com/track/" + encodeURIComponent(item.id);
+      link.target = "_blank";
+      link.rel = "noopener";
+      chips.appendChild(link);
+    }
+    hero.appendChild(chips);
+    hero.hidden = false;
   }
 
-  async function showSimilar(kind, index, item) {
-    els.matches.replaceChildren();
-    els.title.hidden = false;
-    els.title.textContent = "Similar to " + item.name;
-    const list = index.similar(item.index, count());
-    els.results.replaceChildren(...list.map((entry) => row(kind, entry, () => showSimilar(kind, index, entry))));
+  function renderSimilar() {
+    const { kind, index, item } = state;
+    const list = index.similar(item.index, state.shown);
+    $("results").replaceChildren(...list.map((entry, i) => listRow(kind, entry, String(i + 1), () => select(entry))));
+    $("similar").hidden = false;
+    $("more").hidden = list.length >= index.k;
+  }
+
+  function select(item) {
+    state.item = item;
+    state.shown = Math.max(STEP, requested > 0 ? requested : STEP);
+    $("match-list").replaceChildren();
+    $("matches").hidden = true;
+    $("hint").hidden = true;
+    setStatus("");
+    renderHero(state.kind, item);
+    renderSimilar();
+    $("hero").scrollIntoView({ behavior: "smooth", block: "start" });
+    const next = new URLSearchParams({ type: state.kind === "tracks" ? "song" : "artist", q: item.name });
+    history.replaceState(null, "", "?" + next.toString());
+  }
+
+  function resetResults() {
+    $("matches").hidden = true;
+    $("hero").hidden = true;
+    $("similar").hidden = true;
+    $("hint").hidden = false;
+    setStatus("");
   }
 
   async function runSearch() {
+    const text = $("query").value;
+    $("clear").hidden = !text;
+    if (!text.trim()) return resetResults();
     const kind = currentKind();
-    const text = els.query.value;
-    els.results.replaceChildren();
-    els.title.hidden = true;
-    if (!text.trim()) {
-      els.matches.replaceChildren();
+    let index;
+    try {
+      index = await getIndex(kind);
+    } catch (error) {
       return;
     }
-    const index = await getIndex(kind);
-    const hits = index.search(text, 8);
-    els.status.textContent = hits.length ? "" : "No results. Try fewer words.";
-    els.matches.replaceChildren(...hits.map((hit) => row(kind, hit, () => showSimilar(kind, index, hit))));
+    if (kind !== currentKind() || text !== $("query").value) return;
+    state.kind = kind;
+    state.index = index;
+    const hits = index.search(text, 10);
+    $("hero").hidden = true;
+    $("similar").hidden = true;
+    $("hint").hidden = true;
+    setStatus(hits.length ? "" : "No results. Try fewer or different words.");
+    $("matches").hidden = !hits.length;
+    $("match-list").replaceChildren(...hits.map((hit) => listRow(kind, hit, kind === "tracks" ? "♪" : "A", () => select(hit))));
   }
 
   async function runApi(kind, text) {
     const index = await getIndex(kind);
-    const result = index.recommend(text, count());
+    const result = index.recommend(text, state.shown);
     const pre = document.createElement("pre");
     pre.textContent = JSON.stringify(result || { query: text, error: "not found" }, null, 2);
     document.body.replaceChildren(pre);
   }
 
-  els.query.addEventListener("input", () => {
+  $("query").addEventListener("input", () => {
     clearTimeout(timer);
-    timer = setTimeout(runSearch, 200);
+    $("clear").hidden = !$("query").value;
+    timer = setTimeout(runSearch, 150);
+  });
+  $("query").addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      const first = $("match-list").querySelector("button");
+      if (first) first.click();
+    } else if (event.key === "Escape") {
+      $("clear").click();
+    }
+  });
+  $("clear").addEventListener("click", () => {
+    $("query").value = "";
+    $("query").focus();
+    runSearch();
+  });
+  $("more-button").addEventListener("click", () => {
+    state.shown += STEP;
+    renderSimilar();
   });
   document.querySelectorAll('input[name="kind"]').forEach((radio) => radio.addEventListener("change", runSearch));
 
-  const initialKind = params.get("type") === "artist" || params.get("type") === "artists" ? "artists" : "tracks";
+  const initialKind = kindFromParam(params.get("type"));
   document.querySelector('input[name="kind"][value="' + initialKind + '"]').checked = true;
   if (params.get("q")) {
-    els.query.value = params.get("q");
+    $("query").value = params.get("q");
+    $("clear").hidden = false;
     if (params.get("format") === "json") runApi(initialKind, params.get("q"));
     else runSearch();
   }
