@@ -10,7 +10,6 @@ permissions:
 
 env:
   KAGGLE_DATASET: "maharshipandya/-spotify-tracks-dataset"
-  CSV_NAME: "dataset.csv"
   MIN_POPULARITY: "20"
   MAX_TRACKS: "100000"
 
@@ -29,7 +28,17 @@ jobs:
           python-version: "3.12"
 
       - name: Install dependencies
-        run: pip install kaggle pandas
+        run: pip install "kaggle==2.2.5" six pandas
+
+      - name: Check Kaggle credentials
+        env:
+          KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
+          KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
+        run: |
+          if [ -z "$KAGGLE_USERNAME" ] || [ -z "$KAGGLE_KEY" ]; then
+            echo "Missing KAGGLE_USERNAME or KAGGLE_KEY repository secret."
+            exit 1
+          fi
 
       - name: Download dataset
         env:
@@ -37,27 +46,43 @@ jobs:
           KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
         run: |
           set -euo pipefail
+          rm -rf raw
           mkdir -p raw data
           kaggle datasets download -d "$KAGGLE_DATASET" -p raw --unzip
-          ls -lh raw
+          find raw -type f -name "*.csv" -print
 
       - name: Filter and save CSV
         run: |
+          set -euo pipefail
           python - <<'PY'
+          import glob
           import os
+          import sys
+
           import pandas as pd
 
-          df = pd.read_csv(f"raw/{os.environ['CSV_NAME']}")
+          files = glob.glob("raw/**/*.csv", recursive=True)
+          if not files:
+              sys.exit("No CSV file found in raw/")
+          source = max(files, key=os.path.getsize)
+          print(f"Reading {source}")
+
+          df = pd.read_csv(source)
           df = df.drop(columns=[c for c in df.columns if c.startswith("Unnamed")])
 
-          if "track_id" in df.columns:
-              df = df.drop_duplicates(subset="track_id")
+          required = ["track_id", "popularity"]
+          missing = [c for c in required if c not in df.columns]
+          if missing:
+              sys.exit(f"Missing columns: {missing}. Found: {list(df.columns)}")
 
-          if "popularity" in df.columns:
-              df = df[df["popularity"] >= int(os.environ["MIN_POPULARITY"])]
-              df = df.sort_values("popularity", ascending=False)
-
+          df = df.drop_duplicates(subset="track_id")
+          df = df[df["popularity"] >= int(os.environ["MIN_POPULARITY"])]
+          df = df.sort_values(["popularity", "track_id"], ascending=[False, True], kind="stable")
           df = df.head(int(os.environ["MAX_TRACKS"]))
+
+          if df.empty:
+              sys.exit("No tracks left after filtering")
+
           df.to_csv("data/tracks.csv", index=False)
           print(f"Tracks saved: {len(df)}")
           PY
