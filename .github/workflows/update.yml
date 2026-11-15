@@ -13,10 +13,6 @@ env:
   MIN_POPULARITY: "30"
   MAX_TRACKS: "200000"
   NEIGHBORS: "20"
-  MEDIA_MINUTES: "240"
-  MEDIA_DELAY: "3"
-  MEDIA_RETRY_DAYS: "60"
-  REQUIRE_MEDIA: "0"
   MAX_DOCS_MB: "400"
   MAX_FILE_MB: "90"
   MAX_REPO_MB: "700"
@@ -51,7 +47,7 @@ jobs:
       - name: Install dependencies
         run: |
           set -euo pipefail
-          pip install "kaggle==2.2.5" six pandas numpy scipy requests
+          pip install "kaggle==2.2.5" six pandas numpy scipy
 
       - name: Check Kaggle credentials
         env:
@@ -163,26 +159,6 @@ jobs:
           PY
           ls -lh data
 
-      - name: Add album, cover art and 30s preview
-        run: |
-          set -euo pipefail
-          mkdir -p cache
-          python -u media.py
-
-      - name: Commit media cache
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add cache/media.csv
-          if git diff --cached --quiet; then
-            echo "No changes."
-          else
-            git commit -m "Update media cache ($(date -u +%Y-%m-%d))"
-            git pull --rebase
-            git push
-          fi
-
       - name: Build recommendation data
         run: |
           set -euo pipefail
@@ -193,9 +169,8 @@ jobs:
         run: |
           set -euo pipefail
           total=$(du -sm docs/data | cut -f1)
-          cache_total=$(du -sm cache | cut -f1)
-          echo "docs/data total: ${total} MB, cache total: ${cache_total} MB"
-          oversized=$(find docs/data cache -type f -size +"${MAX_FILE_MB}"M | head -n 1)
+          echo "docs/data total: ${total} MB"
+          oversized=$(find docs/data -type f -size +"${MAX_FILE_MB}"M | head -n 1)
           if [ -n "$oversized" ]; then
             echo "File larger than ${MAX_FILE_MB} MB: $oversized"
             exit 1
