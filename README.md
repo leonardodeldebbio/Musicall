@@ -1,101 +1,85 @@
 # Musicall
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Status-In%20Development-orange?style=for-the-badge" alt="Development status">
-  <img src="https://img.shields.io/badge/License-CC0%201.0-blue?style=for-the-badge" alt="CC0 License">
-  <img src="https://img.shields.io/badge/API-Vercel-black?style=for-the-badge&logo=vercel" alt="Vercel">
-  <img src="https://img.shields.io/badge/Python-3.x-blue?style=for-the-badge&logo=python&logoColor=white" alt="Python">
+  <img src="https://img.shields.io/badge/Version-1.1.0-blue?style=flat-square" alt="Version">
+  <img src="https://img.shields.io/badge/Python-3.x-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python">
+  <img src="https://img.shields.io/badge/License-CC0-555555?style=flat-square" alt="License">
+  <img src="https://img.shields.io/badge/Hosted%20on-Vercel-000000?style=flat-square&logo=vercel" alt="Vercel">
 </p>
 
 <p align="center">
-  <b>An open-source music recommendation engine powered by Content-Based Filtering.</b>
+  <strong>An open-source music recommendation engine.</strong>
+  <br>
+  Discover similar songs and artists through audio analysis and content-based filtering.
 </p>
 
 <p align="center">
-  Discover similar songs and artists through a simple, reusable API.
-</p>
-
-<p align="center">
-  <a href="https://leonardodeldebbio.github.io/Musicall/"><b>Live Demo</b></a> ·
-  <a href="https://github.com/leonardodeldebbio/Musicall/wiki"><b>Documentation</b></a> ·
-  <a href="https://musicall.vercel.app/api/recommend?name=Blinding%20Lights"><b>Try the API</b></a>
+  <a href="https://leonardodeldebbio.github.io/Musicall/"><img src="https://img.shields.io/badge/LIVE%20DEMO-181717?style=for-the-badge&logo=github&logoColor=white" alt="Live Demo"></a>
+  <a href="https://github.com/leonardodeldebbio/Musicall/wiki"><img src="https://img.shields.io/badge/DOCUMENTATION-0969DA?style=for-the-badge&logo=gitbook&logoColor=white" alt="Documentation"></a>
+  <a href="https://musicall.vercel.app/api/recommend?name=Blinding%20Lights"><img src="https://img.shields.io/badge/REST%20API-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="API"></a>
 </p>
 
 ---
 
 ## Overview
 
-**Musicall** is an open-source project that provides music and artist recommendations based on their musical characteristics.
+**Musicall** is an open-source music recommendation system designed to identify similarities between songs and artists.
 
-The project implements a **Content-Based Filtering** recommendation system that analyses audio features, genres and other musical information to identify similar tracks and artists.
+It implements a **Content-Based Filtering** approach, analysing musical characteristics, audio features and genre information to generate recommendations without relying on users' listening histories.
 
-The recommendation engine is built with Python, NumPy and Pandas, while its results are exposed through a REST API hosted on Vercel.
-
-Musicall is designed to be flexible and reusable: its API can be integrated into virtually any application, from small personal projects to complete music discovery and streaming platforms.
+The recommendation engine is developed in Python, while its results are exposed through a public REST API.
 
 ## Features
 
-- **Song recommendations:** find tracks similar to a given song.
-- **Artist recommendations:** discover artists with similar musical characteristics.
-- **Content-Based Filtering:** recommendations based on musical features rather than user listening histories.
-- **REST API:** access recommendations through simple HTTP requests.
-- **Multiple output formats:** retrieve results in JSON or CSV.
-- **Precomputed recommendations:** similarity calculations are performed during dataset generation, reducing API processing requirements.
-- **Automated database updates:** GitHub Actions workflows maintain and update the recommendation datasets.
-- **Open source:** freely reusable under the CC0 1.0 Universal license.
+- **Song recommendations:** Discover tracks with similar musical characteristics.
+- **Artist recommendations:** Identify artists with comparable musical styles.
+- **Audio snippet analysis:** Extract additional musical information from short audio excerpts to improve recommendation accuracy.
+- **Content-Based Filtering:** Generate recommendations using musical characteristics rather than user preferences or listening histories.
+- **REST API:** Access recommendation results through HTTP requests.
+- **Expanded dataset:** An evolving collection of tracks and musical information.
+- **Automated updates:** GitHub Actions workflows maintain and update the recommendation database.
 
-## How it works
+## Recommendation System
 
-Musicall processes a music dataset originally sourced from Kaggle and transforms its information into numerical representations.
+Musicall processes a music dataset and transforms relevant musical information into numerical representations.
 
-The recommendation algorithm uses several characteristics, including:
+The system considers several audio features, including:
 
 - Danceability and energy.
 - Acousticness and instrumentalness.
-- Tempo and duration.
-- Loudness and valence.
-- Musical key.
-- Music genres.
+- Tempo and loudness.
+- Valence and duration.
+- Musical genres and other track characteristics.
 
-These features are normalized and combined into numerical vectors. The system then uses **Cosine Similarity** to identify the nearest neighbors for each track and artist.
+These features are processed and compared using **Cosine Similarity**, allowing the system to identify tracks with similar musical profiles.
 
-Recommendations are calculated in advance and stored in optimized JSON and binary files. The API retrieves these precomputed results whenever a request is received.
+Audio snippet analysis provides an additional source of information by extracting characteristics directly from short audio excerpts, helping improve the accuracy of recommendations.
 
-For a more detailed explanation of the algorithm and data processing pipeline, see the [Recommendation System documentation](https://github.com/leonardodeldebbio/Musicall/wiki/Recommendation-System).
+Recommendations are precomputed and stored in optimized files, allowing the API to retrieve results efficiently.
 
-## API
+For further technical details, see the [Recommendation System documentation](https://github.com/leonardodeldebbio/Musicall/wiki/Recommendation-System).
 
-Musicall exposes its recommendation engine through a publicly accessible REST API.
+## REST API
 
-**Base URL:**
+Musicall provides a publicly accessible REST API. No API key is currently required.
+
+**Base URL**
 
 ```text
 https://musicall.vercel.app/api/recommend
 ```
 
-No API key is currently required.
-
-### Example requests
-
-Find songs similar to a given track:
+**Example requests**
 
 ```http
-GET https://musicall.vercel.app/api/recommend?name=Blinding%20Lights
+GET /api/recommend?name=Blinding%20Lights
 ```
-
-Find artists similar to a given artist:
 
 ```http
-GET https://musicall.vercel.app/api/recommend?name=The%20Weeknd&type=artist
+GET /api/recommend?name=The%20Weeknd&type=artist
 ```
 
-Customize the number of recommendations and response format:
-
-```http
-GET https://musicall.vercel.app/api/recommend?name=Blinding%20Lights&type=song&limit=5&format=json
-```
-
-### Available parameters
+**Available parameters**
 
 | Parameter | Description | Default |
 |---|---|---|
@@ -104,73 +88,34 @@ GET https://musicall.vercel.app/api/recommend?name=Blinding%20Lights&type=song&l
 | `limit` | Maximum number of recommendations | `10` |
 | `format` | `json` or `csv` | `json` |
 
-For complete endpoint documentation, response examples and integration instructions, visit the [Quickstart](https://github.com/leonardodeldebbio/Musicall/wiki/Quickstart).
-
-## Live Demo
-
-You can explore Musicall and experiment with its recommendation capabilities through the live demonstration:
-
-<p align="center">
-  <a href="https://leonardodeldebbio.github.io/Musicall/">
-    <img src="https://img.shields.io/badge/Explore%20Musicall-Live%20Demo-black?style=for-the-badge" alt="Explore Musicall">
-  </a>
-</p>
-
-The demonstration is hosted through GitHub Pages and provides an interactive way to discover what the recommendation engine can do.
+For complete endpoint documentation and integration examples, visit the [API Quickstart](https://github.com/leonardodeldebbio/Musicall/wiki/Quickstart).
 
 ## Documentation
 
-The project Wiki contains technical documentation covering the API, recommendation algorithm, database and development process.
+The project Wiki contains additional technical information about the system, its architecture and implementation.
 
-| Page | Description |
-|---|---|
-| [Introduction](https://github.com/leonardodeldebbio/Musicall/wiki) | Project overview and objectives |
-| [Quickstart](https://github.com/leonardodeldebbio/Musicall/wiki/Quickstart) | API usage and first requests |
-| [Recommendation System](https://github.com/leonardodeldebbio/Musicall/wiki/Recommendation-System) | Algorithm and similarity calculations |
+- [Introduction](https://github.com/leonardodeldebbio/Musicall/wiki)
+- [Quickstart](https://github.com/leonardodeldebbio/Musicall/wiki/Quickstart)
+- [Recommendation System](https://github.com/leonardodeldebbio/Musicall/wiki/Recommendation-System)
 
-*Some documentation sections may still be under development.*
+## Changelog
 
-## Technology Stack
+### v1.1.0 — Recommendation Improvements
 
-Musicall combines several technologies to handle data processing, recommendation generation and API delivery.
+- Introduced audio snippet analysis to extract musical characteristics directly from short audio excerpts.
+- Integrated snippet-based analysis into the recommendation process to improve prediction accuracy.
+- Expanded the original dataset with additional tracks and musical information.
 
-| Technology | Purpose |
-|---|---|
-| Python | Recommendation generation |
-| NumPy | Numerical operations and similarity calculations |
-| Pandas | Dataset processing and normalization |
-| JavaScript | API and recommendation data retrieval |
-| Vercel | API hosting and deployment |
-| GitHub Actions | Automated workflows and database updates |
-| GitHub Pages | Dataset hosting and live demonstration |
-| Kaggle | Original music dataset source |
+### v1.0.0 — Initial Release
 
-## Project Status
-
-Musicall is currently under active development.
-
-The core recommendation engine and API are available, but additional improvements, optimizations and features are planned.
-
-The project is intended to remain flexible and accessible to developers who want to experiment with music recommendation systems or integrate recommendation capabilities into their own applications.
-
-## Contributing
-
-Contributions, suggestions and feedback are welcome.
-
-If you want to improve Musicall, you can:
-
-- Report bugs or unexpected API behaviour.
-- Suggest new features and improvements.
-- Improve the recommendation algorithm.
-- Contribute to documentation.
-- Experiment with alternative datasets and recommendation approaches.
-
-Feel free to explore the source code and open an issue or pull request on GitHub.
+- First public release of Musicall.
+- Introduced the Content-Based Filtering recommendation engine.
+- Implemented song and artist recommendations.
+- Published the REST API and live demonstration.
+- Established the original music dataset and automated processing pipeline.
 
 ## License
 
-Musicall is released under the **CC0 1.0 Universal** public domain dedication.
+Musicall is released under the **[CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/)** license.
 
-You are free to copy, modify, distribute and use the project, including for commercial purposes, without asking for permission or providing attribution.
-
-See the [CC0 1.0 Universal license](https://creativecommons.org/publicdomain/zero/1.0/) for further information.
+The project can be freely used, modified, distributed and integrated into other applications, including commercial projects.
