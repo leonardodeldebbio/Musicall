@@ -13,10 +13,10 @@ env:
   MIN_POPULARITY: "30"
   MAX_TRACKS: "200000"
   NEIGHBORS: "20"
-  MEDIA_MINUTES: "240"      # tempo massimo per cercare cover/preview
-  MEDIA_DELAY: "3"          # secondi tra una richiesta e l'altra (~20/min)
-  MEDIA_RETRY_DAYS: "60"    # dopo quanti giorni riprovare le tracce non trovate
-  REQUIRE_MEDIA: "0"        # "1" = tieni solo tracce con preview
+  MEDIA_MINUTES: "240"
+  MEDIA_DELAY: "3"
+  MEDIA_RETRY_DAYS: "60"
+  REQUIRE_MEDIA: "0"
   MAX_DOCS_MB: "400"
   MAX_FILE_MB: "90"
   MAX_REPO_MB: "700"
@@ -167,7 +167,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p cache
-          python -u fetch_media.py
+          python -u media.py
 
       - name: Commit media cache
         run: |
