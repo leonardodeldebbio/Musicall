@@ -29,6 +29,7 @@
       );
       this.names = null;
       this.artists = null;
+      this.albums = null;
       this.familyKeys = this.families ? this.families.map(normalize) : null;
       this.genreKeys = new Map();
     }
@@ -37,6 +38,7 @@
       if (this.names) return;
       this.names = this.catalog.name.map(normalize);
       this.artists = this.catalog.artist ? this.catalog.artist.map(normalize) : null;
+      this.albums = this.catalog.album ? this.catalog.album.map(normalize) : null;
     }
 
     item(i) {
@@ -46,7 +48,6 @@
         out.family_id = out.family;
         out.family = this.families[out.family_id] || "";
       }
-      if (out.audio !== undefined) out.audio = out.audio === 1;
       return out;
     }
 
@@ -67,8 +68,8 @@
       const minYear = Number.isFinite(o.minYear) ? o.minYear : null;
       const maxYear = Number.isFinite(o.maxYear) ? o.maxYear : null;
       const minPop = Number.isFinite(o.minPopularity) ? o.minPopularity : null;
-      const audioOnly = o.audioOnly === true;
-      if (!genre && !family && minYear === null && maxYear === null && minPop === null && !audioOnly) {
+      const previewOnly = o.previewOnly === true;
+      if (!genre && !family && minYear === null && maxYear === null && minPop === null && !previewOnly) {
         return null;
       }
       const c = this.catalog;
@@ -85,7 +86,7 @@
           if (maxYear !== null && year > maxYear) return false;
         }
         if (minPop !== null && (!c.pop || c.pop[i] < minPop)) return false;
-        if (audioOnly && (!c.audio || c.audio[i] !== 1)) return false;
+        if (previewOnly && (!c.preview || !c.preview[i])) return false;
         return true;
       };
     }
@@ -99,7 +100,9 @@
       const found = [];
       for (let i = 0; i < this.names.length; i++) {
         const name = this.names[i];
-        const text = this.artists ? name + " " + this.artists[i] : name;
+        let text = name;
+        if (this.artists) text += " " + this.artists[i];
+        if (this.albums) text += " " + this.albums[i];
         if (!tokens.every((t) => text.includes(t))) continue;
         if (match && !match(i)) continue;
         let rank = 3;
