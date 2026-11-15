@@ -127,9 +127,6 @@ The project Wiki contains technical documentation covering the API, recommendati
 | [Introduction](https://github.com/leonardodeldebbio/Musicall/wiki) | Project overview and objectives |
 | [Quickstart](https://github.com/leonardodeldebbio/Musicall/wiki/Quickstart) | API usage and first requests |
 | [Recommendation System](https://github.com/leonardodeldebbio/Musicall/wiki/Recommendation-System) | Algorithm and similarity calculations |
-| [API Reference](https://github.com/leonardodeldebbio/Musicall/wiki/API-Reference) | API endpoints and parameters |
-| [Database & Data Pipeline](https://github.com/leonardodeldebbio/Musicall/wiki/Database-and-Data-Pipeline) | Dataset processing and automated updates |
-| [Integration Examples](https://github.com/leonardodeldebbio/Musicall/wiki/Integration-Examples) | Examples for external applications |
 
 *Some documentation sections may still be under development.*
 
