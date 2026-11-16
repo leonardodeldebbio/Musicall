@@ -10,8 +10,8 @@ permissions:
 
 env:
   KAGGLE_DATASET: "amitanshjoshi/spotify-1million-tracks"
-  MIN_POPULARITY: "30"
-  MAX_TRACKS: "200000"
+  MIN_POPULARITY: "50"
+  MAX_TRACKS: "10000000"
   NEIGHBORS: "20"
   MAX_DOCS_MB: "400"
   MAX_FILE_MB: "90"
